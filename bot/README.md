@@ -414,7 +414,7 @@ For the complete loading order, file responsibilities, and customization boundar
 
 `readonly` mode does not register `openviking_add_resource`. When a channel sets `ov_tools_enable: false`, it does not expose OpenViking tools or inject Profiles, Memories, and Experiences.
 
-`web_search` picks its backend automatically: Tavily, Exa, or Brave when the matching key is configured (`bot.tools.web.search.tavily_api_key`, `EXA_API_KEY`, `bot.tools.web.search.api_key`), otherwise Keenable, which needs no key, and finally DuckDuckGo. `bot.tools.web.search.keenable_api_key` (or `KEENABLE_API_KEY`) is optional and only lifts Keenable's rate limits.
+`bot.tools.web.search.backend` selects the `web_search` backend. The default, `auto`, uses Tavily, Exa, or Brave when its key is configured (`bot.tools.web.search.tavily_api_key`, `EXA_API_KEY`, `bot.tools.web.search.api_key`) and DuckDuckGo otherwise. Set it to `brave`, `ddgs`, `exa`, `tavily`, or `keenable` to use one backend. Keenable is used only when selected here; it needs no API key, and `KEENABLE_API_KEY` only lifts its rate limits.
 
 ### Scheduled Task Configuration
 

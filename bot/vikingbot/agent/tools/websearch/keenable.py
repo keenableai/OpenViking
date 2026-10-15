@@ -1,4 +1,4 @@
-"""Keenable Search backend - works without an API key."""
+"""Keenable Search backend - opt-in, works without an API key."""
 
 import os
 from typing import Any
@@ -11,12 +11,7 @@ from .registry import register_backend
 
 @register_backend
 class KeenableBackend(WebSearchBackend):
-    """Keenable Search API backend.
-
-    Uses the public endpoint when no key is configured (10 requests/s and
-    1000 requests/hour per client IP). Setting KEENABLE_API_KEY lifts those
-    limits; it is never required.
-    """
+    """Keenable Search API backend. KEENABLE_API_KEY is optional and lifts rate limits."""
 
     name = "keenable"
 
@@ -30,13 +25,12 @@ class KeenableBackend(WebSearchBackend):
     async def search(self, query: str, count: int, **kwargs: Any) -> str:
         try:
             n = min(max(count, 1), 20)
-            headers = {"Content-Type": "application/json", "X-Keenable-Title": "openviking"}
+            url = "https://api.keenable.ai/v1/search"
+            headers = {"X-Keenable-Title": "openviking"}
             if self.api_key:
-                url = "https://api.keenable.ai/v1/search"
                 headers["X-API-Key"] = self.api_key
             else:
-                url = "https://api.keenable.ai/v1/search/public"
-
+                url += "/public"
             async with httpx.AsyncClient() as client:
                 r = await client.post(
                     url,
@@ -53,11 +47,8 @@ class KeenableBackend(WebSearchBackend):
             lines = [f"Results for: {query}\n"]
             for i, item in enumerate(results[:n], 1):
                 lines.append(f"{i}. {item.get('title', '')}\n   {item.get('url', '')}")
-                if text := (item.get("snippet") or item.get("description")):
-                    text = " ".join(text.split())
-                    snippet = text[:500]
-                    suffix = "..." if len(text) > 500 else ""
-                    lines.append(f"   {snippet}{suffix}")
+                if snippet := " ".join((item.get("snippet") or "").split()):
+                    lines.append(f"   {snippet[:500]}")
             return "\n".join(lines)
         except Exception as e:
             return f"Error: {e}"
